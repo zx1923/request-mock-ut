@@ -11,10 +11,11 @@ function createResponse<T>(baseRep: T, mixed?: object): T {
   if (!isObject(mixed) || !mixed) {
     return baseRep;
   }
+  let baseCopy = { ...baseRep };
   for (let key in mixed) {
-    baseRep = mixin(baseRep, key, mixed[key]);
+    mixin(baseCopy, key, mixed[key]);
   }
-  return baseRep;
+  return baseCopy;
 }
 
 /**
@@ -79,7 +80,7 @@ function createUrlRegExp(url: any): RegExp {
 class RequestMock {
 
   /** response mocked map */
-  _reqMap: Map<RegExp, Function | string | object>
+  _mockMap: object
   /** mounted Function */
   _source: Function
   /** bound object */
@@ -88,7 +89,7 @@ class RequestMock {
   _markMethod: string
 
   constructor(obj: object, method: string) {
-    this._reqMap = new Map();
+    this._mockMap = {};
     this._source = null;
 
     if (obj && method) {
@@ -105,7 +106,7 @@ class RequestMock {
    */
   mock(url: RegExp | string, response: any, mixinData?: object) {
     const regUrl = createUrlRegExp(url);
-    this._reqMap.set(regUrl, createResponse(response, mixinData));
+    this._mockMap[regUrl.toString()] = createResponse(response, mixinData);
   }
 
   /**
@@ -115,7 +116,10 @@ class RequestMock {
    */
   remove(url: string | RegExp) {
     const regUrl = createUrlRegExp(url);
-    this._reqMap.delete(regUrl);
+    try {
+      delete this._mockMap[regUrl.toString()];
+    }
+    catch (err) {}
   }
 
   /**
@@ -134,7 +138,10 @@ class RequestMock {
     this._source = obj[method];
 
     obj[method] = (url: string, params?: object): Promise<any> => {
-      for (let [regUrl, response] of this._reqMap) {
+      for (let key in this._mockMap) {
+        const response = this._mockMap[key];
+        key = key.replace(/^\/|\/i$|\/$/g, '');
+        const regUrl = new RegExp(key);
         if (regUrl.test(url)) {
           return Promise.resolve(response);
         }
@@ -155,7 +162,7 @@ class RequestMock {
    * 移除设定的mock
    */
   clear() {
-    this._reqMap.clear();
+    this._mockMap = {};
   }
 
 };

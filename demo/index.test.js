@@ -38,15 +38,25 @@ describe('Sinple demo', () => {
     reqMock.unmount();
   });
 
-  it('[GET] should return user list', async () => {
+  afterEach(() => {
+    reqMock.clear();
+  });
+  
+  it('[GET] should return hello world', async () => {
+    const response = 'hello wolrd'
+    reqMock.mock(/(.*)\/test\/hello/, response);
+    const result = await axios.get(`/test/hello?response=world`);
+    
+    expect(result).toBe(response);
+  });
+
+  it('[GET] should return success code', async () => {
     const { userList } = mockData;
     reqMock.mock(userList.url, userList.response, { ...resSuccess });
     const result = await axios.get(userList.url);
     
     expect(result.code).toBe(0);
-    expect(result.data.length).toBe(2);
   });
-
   
   it('[GET] should return error code', async () => {
     const { userList } = mockData;
@@ -55,6 +65,15 @@ describe('Sinple demo', () => {
     
     expect(result.code).not.toBe(0);
     expect(result.data).toBeNull();
+  });
+  
+  it('[GET] should return user list', async () => {
+    const { userList } = mockData;
+    reqMock.mock(/(.*)\/app\/user\/list/, userList.response, { ...resSuccess });
+    const result = await axios.get(userList.url);
+    
+    expect(result.code).toBe(0);
+    expect(result.data.length).toBe(2);
   });
 
 });
