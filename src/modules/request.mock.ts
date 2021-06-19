@@ -71,9 +71,9 @@ function assignIn(obj: any, data: any) {
  */
 function createUrlRegExp(url: any): RegExp {
   if (!isRegExp(url)) {
-    let u = url.toString().replace('/\//', '\\/');
-    u = u.replace('?', '\\?');
-    return new RegExp(`(.*)?${u}`, 'i');
+    url = url.toString().replace('/', '\\/');
+    url = url.replace('?', '\\?');
+    return new RegExp(`(.*)?${url}`, 'i');
   }
   return url;
 }
