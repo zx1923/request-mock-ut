@@ -134,8 +134,6 @@ class RequestMock {
 
   /**
    * 回滚恢复
-   * 
-   * @param obj 需移除的被挂载对象
    */
   rollback(): Function {
     return this._source;
