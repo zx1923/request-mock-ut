@@ -1,0 +1,34 @@
+{
+  "name": "request-mock-ut",
+  "version": "1.0.0",
+  "description": "单元测试时处理request请求的mock辅助器",
+  "main": "index.js",
+  "scripts": {
+    "build": "gulp",
+    "dev": "gulp dev",
+    "clean": "gulp clean",
+    "demo": "jest demo/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zx1923/request-mock-ut.git"
+  },
+  "author": "Sean",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zx1923/request-mock-ut/issues"
+  },
+  "homepage": "https://github.com/zx1923/request-mock-ut#readme",
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.12.4",
+    "axios": "^0.21.1",
+    "gulp": "^4.0.2",
+    "gulp-clean": "^0.4.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "gulp-uglify": "^3.0.2",
+    "jest": "^27.0.4",
+    "typescript": "^4.3.4"
+  }
+}
