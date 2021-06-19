@@ -1,7 +1,5 @@
 
-import { isObject, isRegExp, getTypeOf, isArray, isFunction } from "../utils/helper";
-
-declare function MountFunction(url: string, params?: object): Promise<any>;
+import { isObject, isRegExp, isArray, isFunction } from "../utils/helper";
 
 /**
  * 生成一个返回值对象
@@ -84,10 +82,18 @@ class RequestMock {
   _reqMap: Map<RegExp, Function | string | object>
   /** mounted Function */
   _source: Function
+  /** bound object */
+  _markObj: object
+  /** property method of bound object */
+  _markMethod: string
 
-  constructor() {
+  constructor(obj: object, method: string) {
     this._reqMap = new Map();
     this._source = null;
+
+    if (obj && method) {
+      this.mount(obj, method);
+    }
   }
 
   /**
@@ -113,16 +119,21 @@ class RequestMock {
   }
 
   /**
-   * 使用当前的Mock对象包装传入的方法
+   * 绑定mock到指定对象的方法上
    * 
-   * @param fn 被包装的方法
+   * @param obj 需绑定的对象
+   * @param method 需绑定的方法
    */
-   decorate(fn: typeof MountFunction): Function {
-    if (isFunction(fn)) {
-      this._source = fn;
+  mount(obj: object, method: string) {
+    if (!obj || !method || !obj[method] || !isFunction(obj[method])) {
+      throw new Error(`The bound object must have a property method that exists`);
     }
 
-    return (url: string, params?: object): Promise<any> => {
+    this._markObj = obj;
+    this._markMethod = method;
+    this._source = obj[method];
+
+    obj[method] = (url: string, params?: object): Promise<any> => {
       for (let [regUrl, response] of this._reqMap) {
         if (regUrl.test(url)) {
           return Promise.resolve(response);
@@ -133,10 +144,11 @@ class RequestMock {
   }
 
   /**
-   * 回滚恢复
+   * 解除绑定
    */
-  rollback(): Function {
-    return this._source;
+  unmount() {
+    this._markObj[this._markMethod] = this._source;
+    this._source = null;
   }
 
   /**
