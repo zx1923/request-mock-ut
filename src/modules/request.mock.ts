@@ -1,5 +1,5 @@
 
-import { isObject, isRegExp, isArray, isFunction } from "../utils/helper";
+import { isObject, isRegExp, isArray, isFunction, isString } from "../utils/helper";
 
 /**
  * 生成一个返回值对象
@@ -66,10 +66,10 @@ function assignIn(obj: any, data: any) {
 /**
  * 生成一个URL的正则匹配
  * 
- * @param url 地址
+ * @param url 地址或正则
  */
-function createUrlRegExp(url: any): RegExp {
-  if (!isRegExp(url)) {
+function createUrlRegExp(url: string | RegExp): RegExp {
+  if (typeof url === 'string') {
     url = url.toString().replace('/', '\\/');
     url = url.replace('?', '\\?');
     return new RegExp(`(.*)?${url}`, 'i');
@@ -146,7 +146,7 @@ class RequestMock {
           return Promise.resolve(response);
         }
       }
-      return Promise.resolve();
+      return this._source(url, params);
     };
   }
 
