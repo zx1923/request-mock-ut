@@ -81,12 +81,12 @@ function createUrlRegExp(url: any): RegExp {
 class RequestMock {
 
   /** response mocked map */
-  reqMap: Map<RegExp, Function | string | object>
+  _reqMap: Map<RegExp, Function | string | object>
   /** mounted Function */
   _source: Function
 
   constructor() {
-    this.reqMap = new Map();
+    this._reqMap = new Map();
     this._source = null;
   }
 
@@ -99,7 +99,7 @@ class RequestMock {
    */
   mock(url: RegExp | string, response: any, mixinData?: object) {
     const regUrl = createUrlRegExp(url);
-    this.reqMap.set(regUrl, createResponse(response, mixinData));
+    this._reqMap.set(regUrl, createResponse(response, mixinData));
   }
 
   /**
@@ -109,7 +109,7 @@ class RequestMock {
    */
   remove(url: string | RegExp) {
     const regUrl = createUrlRegExp(url);
-    this.reqMap.delete(regUrl);
+    this._reqMap.delete(regUrl);
   }
 
   /**
@@ -123,7 +123,7 @@ class RequestMock {
     }
 
     return (url: string, params?: object): Promise<any> => {
-      for (let [regUrl, response] of this.reqMap) {
+      for (let [regUrl, response] of this._reqMap) {
         if (regUrl.test(url)) {
           return Promise.resolve(response);
         }
@@ -145,7 +145,7 @@ class RequestMock {
    * 移除设定的mock
    */
   clear() {
-    this.reqMap.clear();
+    this._reqMap.clear();
   }
 
 };
