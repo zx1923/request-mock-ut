@@ -3,11 +3,10 @@ import { isObject, isRegExp, isArray, isFunction, isString } from "../utils/help
 
 /**
  * 生成一个返回值对象
- * 
  * @param baseRep 基础响应
  * @param mixed 混入的对象
  */
-function createResponse<T>(baseRep: T, mixed?: object): T {
+function createResponse<T>(baseRep: T, mixed?: JSON): T {
   if (!isObject(mixed) || !mixed) {
     return baseRep;
   }
@@ -20,7 +19,6 @@ function createResponse<T>(baseRep: T, mixed?: object): T {
 
 /**
  * 将数据混入到原对象中
- * 
  * @param obj 原对象
  * @param position 混入的位置
  * @param mixdata 需要混入的值
@@ -45,7 +43,6 @@ function mixin<T>(obj: T, position: string, mixdata: any): T {
 
 /**
  * 合入
- * 
  * @param obj 原对象
  * @param data 合人值
  */
@@ -65,7 +62,6 @@ function assignIn(obj: any, data: any) {
 
 /**
  * 生成一个URL的正则匹配
- * 
  * @param url 地址或正则
  */
 function createUrlRegExp(url: string | RegExp): RegExp {
@@ -99,19 +95,28 @@ class RequestMock {
 
   /**
    * 添加一个对传入 URL 的 mock 
-   * 
    * @param url 地址
    * @param response 响应值
    * @param mixinData 混入值
    */
-  mock(url: RegExp | string, response: any, mixinData?: object) {
+  mock(url: RegExp | string, response: any, mixinData?: JSON) {
     const regUrl = createUrlRegExp(url);
     this._mockMap[regUrl.toString()] = createResponse(response, mixinData);
   }
 
   /**
+   * 移除对某个url的mock
+   * @param url 要移除的监听地址
+   */
+  unmock(url: RegExp | string) {
+    const regUrlKey = createUrlRegExp(url).toString();
+    if (this._mockMap[regUrlKey]) {
+      delete this._mockMap[regUrlKey];
+    }
+  }
+
+  /**
    * 移除对传入 URL 的 mock
-   * 
    * @param url 地址
    */
   remove(url: string | RegExp) {
@@ -123,8 +128,24 @@ class RequestMock {
   }
 
   /**
+   * 模拟发送请求
+   * @param url 地址
+   * @returns 
+   */
+  request(url: string): Promise<any> {
+    for (let key in this._mockMap) {
+      const response = this._mockMap[key];
+      key = key.replace(/^\/|\/i$|\/$/g, '');
+      const regUrl = new RegExp(key);
+      if (regUrl.test(url)) {
+        return Promise.resolve(response);
+      }
+    }
+    return Promise.resolve();
+  }
+
+  /**
    * 绑定mock到指定对象的方法上
-   * 
    * @param obj 需绑定的对象
    * @param method 需绑定的方法
    */
@@ -137,17 +158,7 @@ class RequestMock {
     this._markMethod = method;
     this._source = obj[method];
 
-    obj[method] = (url: string, params?: object): Promise<any> => {
-      for (let key in this._mockMap) {
-        const response = this._mockMap[key];
-        key = key.replace(/^\/|\/i$|\/$/g, '');
-        const regUrl = new RegExp(key);
-        if (regUrl.test(url)) {
-          return Promise.resolve(response);
-        }
-      }
-      return this._source(url, params);
-    };
+    obj[method] = this.request;
   }
 
   /**
