@@ -158,7 +158,7 @@ class RequestMock {
     this._markMethod = method;
     this._source = obj[method];
 
-    obj[method] = this.request;
+    obj[method] = this.request.bind(this);
   }
 
   /**
